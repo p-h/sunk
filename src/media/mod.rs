@@ -3,7 +3,7 @@ use std::ops::Index;
 use std::result;
 use std::str::FromStr;
 
-use {Client, Error, Result};
+use crate::{Client, Error, Result};
 
 // pub mod format;
 pub mod podcast;

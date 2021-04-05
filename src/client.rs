@@ -1,12 +1,12 @@
-use reqwest::Client as ReqwestClient;
+use reqwest::blocking::Client as ReqwestClient;
 use reqwest::Url;
 use serde_json;
 
-use media::NowPlaying;
-use query::Query;
-use response::Response;
-use search::{SearchPage, SearchResult};
-use {Album, Artist, Error, Genre, Hls, Lyrics, MusicFolder, Result, Song, UrlError, Version};
+use crate::media::NowPlaying;
+use crate::query::Query;
+use crate::response::Response;
+use crate::search::{SearchPage, SearchResult};
+use crate::{Album, Artist, Error, Genre, Hls, Lyrics, MusicFolder, Result, Song, Version};
 
 const SALT_SIZE: usize = 36; // Minimum 6 characters.
 
@@ -78,11 +78,12 @@ impl SubsonicAuth {
             use rand::{distributions::Alphanumeric, thread_rng, Rng};
             use std::iter;
 
-            let mut rng = thread_rng();
-            let salt: String = iter::repeat(())
-                .map(|()| rng.sample(Alphanumeric))
-                .take(SALT_SIZE)
-                .collect();
+            let rng = thread_rng();
+            let salt = unsafe {
+                std::string::String::from_utf8_unchecked(
+                    rng.sample_iter(&Alphanumeric).take(SALT_SIZE).collect(),
+                )
+            };
             let pre_t = self.password.to_string() + &salt;
             let token = format!("{:x}", md5::compute(pre_t.as_bytes()));
 
@@ -146,10 +147,7 @@ impl Client {
     #[cfg_attr(feature = "cargo-clippy", allow(needless_pass_by_value))]
     pub(crate) fn build_url(&self, query: &str, args: Query) -> Result<String> {
         let scheme = self.url.scheme();
-        let addr = self
-            .url
-            .host_str()
-            .ok_or_else(|| Error::Url(UrlError::Address))?;
+        let addr = self.url.host_str().ok_or_else(|| Error::Address)?;
 
         let mut url = [scheme, "://", addr, "/rest/"].concat();
         url.push_str(query);
@@ -208,18 +206,16 @@ impl Client {
 
     /// Returns a response as a vector of bytes rather than serialising it.
     pub(crate) fn get_bytes(&self, query: &str, args: Query) -> Result<Vec<u8>> {
-        use std::io::Read;
         let uri: Url = self.build_url(query, args)?.parse().unwrap();
         let res = self.reqclient.get(uri).send()?;
-        Ok(res.bytes().map(|b| b.unwrap()).collect())
+        Ok(res.bytes()?.to_vec())
     }
 
     /// Returns the raw bytes of a HLS slice.
     pub fn hls_bytes(&self, hls: &Hls) -> Result<Vec<u8>> {
-        use std::io::Read;
         let url: Url = self.url.join(&hls.url)?;
         let res = self.reqclient.get(url).send()?;
-        Ok(res.bytes().map(|b| b.unwrap()).collect())
+        Ok(res.bytes()?.to_vec())
     }
 
     /// Tests a connection with the server.

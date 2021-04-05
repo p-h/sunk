@@ -137,7 +137,7 @@ pub use self::collections::Playlist;
 pub use self::collections::{Album, AlbumInfo, ListType};
 pub use self::collections::{Artist, ArtistInfo};
 pub use self::collections::{Genre, MusicFolder};
-pub use self::error::{ApiError, Error, Result, UrlError};
+pub use self::error::{ApiError, Error, Result};
 pub use self::jukebox::{Jukebox, JukeboxPlaylist, JukeboxStatus};
 pub use self::media::{podcast, song, video};
 pub use self::media::{Hls, HlsPlaylist, Media, NowPlaying, RadioStation, Streamable};

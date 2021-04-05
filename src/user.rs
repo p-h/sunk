@@ -1,7 +1,7 @@
 use serde_json;
 
-use query::Query;
-use {Client, Result};
+use crate::query::Query;
+use crate::{Client, Result};
 
 /// A struct representing a Subsonic user.
 #[derive(Debug, Deserialize)]

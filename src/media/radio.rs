@@ -1,8 +1,8 @@
 use serde::de::{Deserialize, Deserializer};
 use std::result;
 
-use query::Query;
-use {Client, Result};
+use crate::query::Query;
+use crate::{Client, Result};
 
 #[derive(Debug)]
 pub struct RadioStation {

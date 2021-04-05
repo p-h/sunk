@@ -2,9 +2,9 @@ use serde::de::{Deserialize, Deserializer};
 use serde_json;
 use std::{fmt, result};
 
-use query::{Arg, IntoArg, Query};
-use search::SearchPage;
-use {Client, Error, Media, Result, Song};
+use crate::query::{Arg, IntoArg, Query};
+use crate::search::SearchPage;
+use crate::{Client, Error, Media, Result, Song};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ListType {

@@ -2,8 +2,8 @@ use serde::de::{Deserialize, Deserializer};
 use serde_json;
 use std::result;
 
-use query::Query;
-use {Client, Error, Media, Result, Streamable};
+use crate::query::Query;
+use crate::{Client, Error, Media, Result, Streamable};
 
 #[derive(Debug)]
 pub struct Video {

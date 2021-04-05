@@ -3,6 +3,7 @@ use serde::de::{Deserialize, Deserializer};
 use serde_json;
 use std::convert::From;
 use std::{fmt, io, num, result};
+use url;
 
 /// An alias for `sunk`'s error result type.
 pub type Result<T> = result::Result<T, self::Error>;
@@ -14,12 +15,24 @@ pub enum Error {
     #[fail(display = "Unable to connect to server: received {}", _0)]
     Connection(reqwest::StatusCode),
 
-    /// Unable to recognize the URL provided in `Client` setup.
+    /// Unable to parse the URL provided in `Client` setup.
     #[fail(display = "Invalid URL: {}", _0)]
-    Url(UrlError),
+    UrlParseError(url::ParseError),
+
     /// The Subsonic server returned an error.
     #[fail(display = "{}", _0)]
     Api(#[cause] ApiError),
+
+    /// Unable to determine the scheme of the address.
+    ///
+    /// The provider for the `Client` does not automatically add the HTTP
+    /// scheme like other Rust frameworks. If you encounter this error,
+    /// you probably need to add `http://` or `https://` to your server address.
+    #[fail(display = "Unable to determine scheme")]
+    Scheme,
+    /// The server address was not provided.
+    #[fail(display = "Missing server address")]
+    Address,
 
     /// A number conversion failed.
     #[fail(display = "Failed to parse int: {}", _0)]
@@ -37,24 +50,6 @@ pub enum Error {
     /// For general, one-off errors.
     #[fail(display = "{}", _0)]
     Other(&'static str),
-}
-
-/// Possible errors when initializing a `Client`.
-#[derive(Debug, Fail)]
-pub enum UrlError {
-    /// Unable to parse the URL.
-    #[fail(display = "{}", _0)]
-    Reqwest(#[cause] reqwest::UrlError),
-    /// Unable to determine the scheme of the address.
-    ///
-    /// The provider for the `Client` does not automatically add the HTTP
-    /// scheme like other Rust frameworks. If you encounter this error,
-    /// you probably need to add `http://` or `https://` to your server address.
-    #[fail(display = "Unable to determine scheme")]
-    Scheme,
-    /// The server address was not provided.
-    #[fail(display = "Missing server address")]
-    Address,
 }
 
 /// The possible errors a Subsonic server may return.
@@ -171,17 +166,10 @@ box_err!(reqwest::Error, Reqwest);
 box_err!(io::Error, Io);
 box_err!(num::ParseIntError, Parse);
 box_err!(serde_json::Error, Serde);
-box_err!(UrlError, Url);
 box_err!(ApiError, Api);
 
-impl From<reqwest::UrlError> for UrlError {
-    fn from(err: reqwest::UrlError) -> UrlError {
-        UrlError::Reqwest(err)
-    }
-}
-
-impl From<reqwest::UrlError> for Error {
-    fn from(err: reqwest::UrlError) -> Error {
-        Error::Url(err.into())
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Error {
+        Error::UrlParseError(err)
     }
 }

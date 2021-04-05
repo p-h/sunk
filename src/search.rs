@@ -170,9 +170,9 @@
 //! # fn main() { }
 //! ```
 
-use song::Song;
+use crate::song::Song;
+use crate::{Album, Artist};
 use std::fmt;
-use {Album, Artist};
 
 /// The maximum number of results most searches will accept.
 pub const ALL: SearchPage = SearchPage {

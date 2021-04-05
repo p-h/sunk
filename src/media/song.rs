@@ -3,9 +3,9 @@ use serde_json;
 use std::fmt;
 use std::ops::Range;
 
-use query::Query;
-use search::SearchPage;
-use {Client, Error, HlsPlaylist, Media, Result, Streamable};
+use crate::query::Query;
+use crate::search::SearchPage;
+use crate::{Client, Error, HlsPlaylist, Media, Result, Streamable};
 
 /// A work of music contained on a Subsonic server.
 #[derive(Debug, Clone)]

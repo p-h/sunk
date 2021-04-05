@@ -3,8 +3,8 @@ use std::{fmt, result};
 use serde::de::{Deserialize, Deserializer};
 use serde_json;
 
-use query::Query;
-use {Album, Client, Error, Media, Result, Song};
+use crate::query::Query;
+use crate::{Album, Client, Error, Media, Result, Song};
 
 /// Basic information about an artist.
 #[derive(Debug, Clone)]
@@ -258,5 +258,4 @@ mod tests {
         )
         .unwrap()
     }
-
 }
