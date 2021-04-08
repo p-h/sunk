@@ -3,57 +3,58 @@ use serde::de::{Deserialize, Deserializer};
 use serde_json;
 use std::convert::From;
 use std::{fmt, io, num, result};
+use thiserror;
 use url;
 
 /// An alias for `sunk`'s error result type.
 pub type Result<T> = result::Result<T, self::Error>;
 
 /// Possible errors that may be returned by a function.
-#[derive(Debug, Fail)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Unable to connect to the Subsonic server.
-    #[fail(display = "Unable to connect to server: received {}", _0)]
+    #[error("Unable to connect to server: received {}", _0)]
     Connection(reqwest::StatusCode),
 
     /// Unable to parse the URL provided in `Client` setup.
-    #[fail(display = "Invalid URL: {}", _0)]
+    #[error("Invalid URL: {}", _0)]
     UrlParseError(url::ParseError),
 
     /// The Subsonic server returned an error.
-    #[fail(display = "{}", _0)]
-    Api(#[cause] ApiError),
+    #[error("{}", _0)]
+    Api(#[from] ApiError),
 
     /// Unable to determine the scheme of the address.
     ///
     /// The provider for the `Client` does not automatically add the HTTP
     /// scheme like other Rust frameworks. If you encounter this error,
     /// you probably need to add `http://` or `https://` to your server address.
-    #[fail(display = "Unable to determine scheme")]
+    #[error("Unable to determine scheme")]
     Scheme,
     /// The server address was not provided.
-    #[fail(display = "Missing server address")]
+    #[error("Missing server address")]
     Address,
 
     /// A number conversion failed.
-    #[fail(display = "Failed to parse int: {}", _0)]
-    Parse(#[cause] num::ParseIntError),
+    #[error("Failed to parse int: {}", _0)]
+    Parse(#[from] num::ParseIntError),
     /// An IO issue occurred.
-    #[fail(display = "IO error: {}", _0)]
-    Io(#[cause] io::Error),
+    #[error("IO error: {}", _0)]
+    Io(#[from] io::Error),
     /// An error in the web framework occurred.
-    #[fail(display = "Connection error: {}", _0)]
-    Reqwest(#[cause] reqwest::Error),
+    #[error("Connection error: {}", _0)]
+    Reqwest(#[from] reqwest::Error),
     /// An error occurred in serialization.
-    #[fail(display = "Error serialising: {}", _0)]
-    Serde(#[cause] serde_json::Error),
+    #[error("Error serialising: {}", _0)]
+    Serde(#[from] serde_json::Error),
 
     /// For general, one-off errors.
-    #[fail(display = "{}", _0)]
+    #[error("{}", _0)]
     Other(&'static str),
 }
 
 /// The possible errors a Subsonic server may return.
-#[derive(Debug, Fail, Clone)]
+#[derive(Debug, thiserror::Error, Clone)]
 pub enum ApiError {
     /// A generic error.
     Generic(String),
@@ -152,21 +153,6 @@ impl fmt::Display for ApiError {
         }
     }
 }
-macro_rules! box_err {
-    ($err:ty, $to:ident) => {
-        impl From<$err> for Error {
-            fn from(err: $err) -> Error {
-                Error::$to(err)
-            }
-        }
-    };
-}
-
-box_err!(reqwest::Error, Reqwest);
-box_err!(io::Error, Io);
-box_err!(num::ParseIntError, Parse);
-box_err!(serde_json::Error, Serde);
-box_err!(ApiError, Api);
 
 impl From<url::ParseError> for Error {
     fn from(err: url::ParseError) -> Error {

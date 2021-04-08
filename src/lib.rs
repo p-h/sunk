@@ -102,8 +102,6 @@
 //! something does not work as reported, it's probably broken.**
 
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate log;
 extern crate md5;
 extern crate rand;
